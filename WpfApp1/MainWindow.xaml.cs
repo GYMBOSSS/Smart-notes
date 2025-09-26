@@ -19,14 +19,19 @@ namespace WpfApp1
 {
     public partial class MainWindow : Window
     {
-        private List<Note> notes = new List<Note>();
-        private List<NoteTag> tags = new List<NoteTag>();
+        private List<Note> Notes = new List<Note>();
+        private List<NoteTag> Tags = new List<NoteTag>();
         public MainWindow()
         {
             InitializeComponent();
-            DB_API.LoadNotesFromDB_Async(this);
+            var (notes,tags) = DB_API.LoadNotesNTagsFromDB_Async().Result;
             RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.Default;
-            tags = new List<NoteTag>();
+            Tags = tags;
+            Notes = notes;
+            foreach (var note in Notes)
+            {
+                AddNoteToPanel(note);
+            }
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)
@@ -121,11 +126,11 @@ namespace WpfApp1
 
         public void AddTagToList(NoteTag tag)
         {
-            tags.Add(tag);
+            Tags.Add(tag);
         }
         public void AddNoteToList(Note note)
         {
-            notes.Add(note);
+            Notes.Add(note);
         }
 
 
@@ -133,7 +138,7 @@ namespace WpfApp1
 
         public List<NoteTag> GetTagList()
         {
-            return tags;
+            return Tags;
         }
        
     }

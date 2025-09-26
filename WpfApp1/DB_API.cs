@@ -13,17 +13,13 @@ namespace WpfApp1
     {
 
         static string connectionString = "Server = 127.0.0.1;Port=11111;Database=SmartNotesDB;UserId=postgres;Password=sp1DVAGON";
-        const string sqlSELECT = @"
-            SELECT
-                n.id,
-                n.title,
-                n.details,
-                n.created_at,
-                n.make_up_to,
-                n.is_completed,
-                t.id AS tag_id
-            FROM notes n
-            LEFT JOIN tags t on n.tag_id = t.id";
+
+        const string sqlSELECTnotes = @"
+            SELECT id, title, details, created_at, make_up_to, is_completed, tag_id
+            FROM notes";
+        const string sqlSELECTtags = @"
+            SELECT id, tag_name, tag_priority, color
+            FROM tags";
 
         const string sqlINSERTnote = @"
             INSERT INTO notes (title,details,tag_id,created_at,make_up_to,is_completed)
@@ -32,11 +28,13 @@ namespace WpfApp1
         const string sqlINSERTtag = @"
             INSERT INTO tags (tag_priority, tag_name, color)
             VALUES (@tag_priority, @tag_name, @color)";
-        async public static Task LoadNotesAndTagsFromDB_Async(MainWindow mainWindow){
+        async public static Task<(List<Note>, List<NoteTag>)> LoadNotesNTagsFromDB_Async(){
+            List<Note> notes = new List<Note>();
+            List<NoteTag> tags = await DB_API.LoadTagsFromDBAsync();
             using (var conn = new NpgsqlConnection(connectionString))
             {
                 conn.Open();
-                NpgsqlCommand cmd = new NpgsqlCommand(sqlSELECT, conn);
+                NpgsqlCommand cmd = new NpgsqlCommand(sqlSELECTnotes, conn);
                 var reader = cmd.ExecuteReader();
                 int idIndex = reader.GetOrdinal("id");
                 int detIndex = reader.GetOrdinal("details");
@@ -44,11 +42,7 @@ namespace WpfApp1
                 int cr_atIndex = reader.GetOrdinal("created_at");
                 int makeIndex = reader.GetOrdinal("make_up_to");
                 int isCompIndex = reader.GetOrdinal("is_completed");
-                
                 int? tagIndex = reader.GetOrdinal("tag_id");
-                int? tagPrioIndex = reader.GetOrdinal("tag_priority");
-                int? tagNameIndex = reader.GetOrdinal("tag_name");
-                int? colorIndex = reader.GetOrdinal("color");
                 while (await reader.ReadAsync())
                 {
                     var note = new Note
@@ -62,20 +56,38 @@ namespace WpfApp1
                     };
                     if (!reader.IsDBNull(tagIndex.Value))
                     {
-                        var tag = new NoteTag
-                        {
-                            ID = reader.GetInt32(tagIndex.Value),
-                            tagPriority = reader.GetInt32(tagPrioIndex.Value),
-                            tagName = reader.GetString(tagNameIndex.Value),
-                            tagColorHex = reader.GetString(colorIndex.Value)
-                        };
-                        note.tag = tag;
-                        mainWindow.AddTagToList(tag);
+                        var tagDict = tags.ToDictionary(t => t.ID);
+                        note.tag = tagDict[tagIndex.Value];
                     }
-                    mainWindow.AddNoteToPanel(note);
-                    mainWindow.AddNoteToList(note);
+                    notes.Add(note);
+                }
+                return (notes, tags);
+            }
+        }
+        async public static Task<List<NoteTag>> LoadTagsFromDBAsync()
+        {
+            var tags = new List<NoteTag>();
+            using (var conn = new NpgsqlConnection(connectionString))
+            {
+                conn.Open();
+                NpgsqlCommand cmd = new NpgsqlCommand(sqlSELECTtags, conn);
+                var reader = cmd.ExecuteReader();
+                int tagIndexID = reader.GetOrdinal("id");
+                int tagPriorityID = reader.GetOrdinal("tag_priority");
+                int tagNameID = reader.GetOrdinal("tag_name");
+                int tagColorID = reader.GetOrdinal("color");
+                while (reader.Read())
+                {
+                    var tag = new NoteTag {
+                        ID = reader.GetInt32(tagIndexID),
+                        tagPriority = reader.GetInt32(tagPriorityID),
+                        tagName = reader.GetString(tagNameID),
+                        tagColorHex = reader.GetString(tagColorID)
+                    };
+                    tags.Add(tag);
                 }
             }
+            return tags;
         }
         async public static Task LoadNoteToDB(Note note) 
         {
