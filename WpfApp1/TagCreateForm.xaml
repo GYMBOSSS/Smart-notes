@@ -1,0 +1,22 @@
+﻿<Window x:Class="WpfApp1.TagCreateForm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="TagCreateForm" Height="176" Width="221">
+    <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+        <!-- Название тега -->
+        <TextBox x:Name="TagName" Height="25" Width="200" Margin="10,37,0,0" VerticalAlignment="Top" HorizontalAlignment="Left">Название тэга</TextBox>
+        <!-- Приоритет тега -->
+        <TextBox x:Name="TagPriority" Height="25" Width="200" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center">Приоритет тэга</TextBox>
+        <!-- Выбор цвета тега -->
+        <StackPanel Orientation="Horizontal" Margin="10,10,10,0" VerticalAlignment="Top">
+            <TextBlock Text="Цвет:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <xctk:ColorPicker x:Name="SetColor" Width="50"></xctk:ColorPicker>
+        </StackPanel>
+        <Button x:Name="CreateTagButton" Height="50" Click="CreateTagButton_Click" Margin="10,100,0,10">Добавить тэг</Button>
+    </Grid>
+</Window>
